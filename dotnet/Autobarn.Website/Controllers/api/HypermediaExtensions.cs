@@ -11,5 +11,16 @@ namespace Autobarn.Website.Controllers.api {
             if (index + count < total) links.next = new { href = $"{url}?index={index + count}&count={count}" };
             return links;
         }
+
+        public static dynamic PaginateByLetter(string url, char regStart) {
+            dynamic links = new ExpandoObject();
+            links.self = new { href = url };
+            links.first = new { href = $"{url}?regStart=z" };
+            links.first = new { href = $"{url}?regStart=a" };
+            if (regStart != 'a') links.previous = new { href = $"{url}?regStart={(char)(((int)regStart) - 1)}" };
+            if (regStart != 'z') links.next = new { href = $"{url}?regStart={(char)(((int)regStart) + 1)}" };
+            return links;
+        }
     }
 }
+

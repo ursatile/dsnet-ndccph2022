@@ -19,20 +19,34 @@ namespace Autobarn.Website.Controllers.api {
             this.db = db;
         }
 
-        // GET: api/vehicles
-        [Produces("application/hal+json")]
+        //// GET: api/vehicles
+        //[Produces("application/hal+json")]
+        //[HttpGet]
+        //public IActionResult Get(int index = 0, int count = 10) {
+        //    var items = db.ListVehicles().Skip(index).Take(count);
+        //    var total = db.CountVehicles();
+        //    // ReSharper disable once InconsistentNaming
+        //    var _links = Hal.Paginate("/api/vehicles", index, count, total);
+        //    return Ok(new {
+        //        _links,
+        //        items,
+        //    });
+        //}
+
         [HttpGet]
-        public IActionResult Get(int index = 0, int count = 10) {
-            var items = db.ListVehicles().Skip(index).Take(count);
+        public IActionResult Get(char regStart = 'a') {
+            var items = db.ListVehicles().Where(
+                x => x.Registration.StartsWith(regStart.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                //x => x.Registration.ToLower().StartsWith(regStart.ToString().ToLower())
+            );
             var total = db.CountVehicles();
             // ReSharper disable once InconsistentNaming
-            var _links = Hal.Paginate("/api/vehicles", index, count, total);
+            var _links = Hal.PaginateByLetter("/api/vehicles", regStart);
             return Ok(new {
                 _links,
                 items,
             });
         }
-
         // GET api/vehicles/ABC123
         [HttpGet("{id}")]
         public IActionResult Get(string id) {
@@ -44,6 +58,10 @@ namespace Autobarn.Website.Controllers.api {
         // POST api/vehicles
         [HttpPost]
         public IActionResult Post([FromBody] VehicleDto dto) {
+            var existing = db.FindVehicle(dto.Registration);
+            if (existing != default)
+                return Conflict(
+                    $"Sorry, the vehicle with registration {dto.Registration} is already in our database and you can't list the same vehicle twice.");
             var vehicleModel = db.FindModel(dto.ModelCode);
             var vehicle = new Vehicle {
                 Registration = dto.Registration,
