@@ -13,6 +13,7 @@ namespace Autobarn.Data.Entities {
 		public string ManufacturerCode { get; set; }
 		public string Name { get; set; }
 
+        [JsonIgnore]
 		public virtual Manufacturer Manufacturer { get; set; }
 		[JsonIgnore]
 		public virtual ICollection<Vehicle> Vehicles { get; set; }
