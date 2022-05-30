@@ -29,9 +29,25 @@ namespace Autobarn.Website.Tests {
 			var client = factory.CreateClient();
 			var response = await client.GetAsync("/api/vehicles");
 			var json = await response.Content.ReadAsStringAsync();
-			var vehicles = JsonConvert.DeserializeObject<List<Vehicle>>(json);
-			vehicles.Count.ShouldBeGreaterThan(0);
-		}
+            var result = JsonConvert.DeserializeObject<dynamic>(json);
+            ((string) result._links.self.href).ShouldStartWith("/api/vehicles");
+            ((string)result._links.next.href).ShouldStartWith("/api/vehicles");
+            ((object) result._links.previous).ShouldBeNull();
+        }
+
+        [Fact]
+        public async void GET_vehicles_returns_valid_paging() {
+            var client = factory.CreateClient();
+            var response = await client.GetAsync("/api/vehicles");
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<dynamic>(json);
+            var href = (string) result._links.next.href;
+			response = await client.GetAsync(href);
+            json = await response.Content.ReadAsStringAsync();
+            result = JsonConvert.DeserializeObject<dynamic>(json);
+			((int)result.items.Count).ShouldBeGreaterThan(0);
+            ((string) result.items[0].registration).ShouldNotBeNullOrWhiteSpace();
+        }
 
 		[Fact]
 		public async void POST_creates_vehicle() {
