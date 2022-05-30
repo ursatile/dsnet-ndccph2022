@@ -1,10 +1,12 @@
-﻿using Autobarn.Data;
+﻿using System;
+using Autobarn.Data;
 using Autobarn.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using Autobarn.Messages;
 using Autobarn.Website.Models;
+using Autobarn.Website.Services;
 using EasyNetQ;
 
 namespace Autobarn.Website.Controllers.api {
@@ -13,10 +15,12 @@ namespace Autobarn.Website.Controllers.api {
     public class ModelsController : ControllerBase {
         private readonly IAutobarnDatabase db;
         private readonly IBus bus;
+        private readonly IClock clock;
 
-        public ModelsController(IAutobarnDatabase db, IBus bus) {
+        public ModelsController(IAutobarnDatabase db, IBus bus, IClock clock) {
             this.db = db;
             this.bus = bus;
+            this.clock = clock;
         }
 
         [HttpGet]
@@ -50,7 +54,16 @@ namespace Autobarn.Website.Controllers.api {
             var existing = db.FindVehicle(dto.Registration);
             if (existing != default)
                 return Conflict(
-                    $"Sorry, the vehicle with registration {dto.Registration} is already in our database and you can't list the same vehicle twice.");
+                    new {
+                        ProblemId = "https://autobarn.com/problems/123456",
+                        FriendlyError =
+                        $"Sorry, the vehicle with registration {dto.Registration
+                        } is already in our database and you can't list the same vehicle twice.",
+                        CorrelationId = Guid.NewGuid(),
+                        dto.Registration,
+                        OccurredAt = DateTime.UtcNow,
+                    });
+
             var vehicleModel = db.FindModel(id);
             var vehicle = new Vehicle {
                 Registration = dto.Registration,
@@ -73,7 +86,8 @@ namespace Autobarn.Website.Controllers.api {
                 ManufacturerName = vehicle.VehicleModel.Manufacturer.Name,
                 ModelName = vehicle.VehicleModel.Name,
                 Year = vehicle.Year,
-                Registration = vehicle.Registration
+                Registration = vehicle.Registration,
+                ListedAt = clock.Now
             };
             bus.PubSub.Publish(message);
         }

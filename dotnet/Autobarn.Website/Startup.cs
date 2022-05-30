@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using Autobarn.Website.Services;
 using EasyNetQ;
 
 namespace Autobarn.Website {
@@ -36,6 +37,7 @@ namespace Autobarn.Website {
 			var amqp = Configuration.GetConnectionString("AutobarnRabbitMqConnectionString");
             var bus = RabbitHutch.CreateBus(amqp);
             services.AddSingleton(bus);
+            services.AddSingleton<IClock>(new SystemClock());
         }
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
