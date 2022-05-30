@@ -52,26 +52,18 @@ namespace Autobarn.Website.Controllers.api {
         public IActionResult Get(string id) {
             var vehicle = db.FindVehicle(id);
             if (vehicle == default) return NotFound();
-            return Ok(vehicle);
+            var resource = vehicle.ToResource();
+            resource._actions = new {
+                delete = new {
+                    name = "Delete this vehicle",
+                    href = $"/api/vehicles/{id}",
+                    method = "DELETE"
+                }
+            };
+            return Ok(resource);
         }
 
-        // POST api/vehicles
-        [HttpPost]
-        public IActionResult Post([FromBody] VehicleDto dto) {
-            var existing = db.FindVehicle(dto.Registration);
-            if (existing != default)
-                return Conflict(
-                    $"Sorry, the vehicle with registration {dto.Registration} is already in our database and you can't list the same vehicle twice.");
-            var vehicleModel = db.FindModel(dto.ModelCode);
-            var vehicle = new Vehicle {
-                Registration = dto.Registration,
-                Color = dto.Color,
-                Year = dto.Year,
-                VehicleModel = vehicleModel
-            };
-            db.CreateVehicle(vehicle);
-            return Ok(dto);
-        }
+
 
         // PUT api/vehicles/ABC123
         [HttpPut("{id}")]
