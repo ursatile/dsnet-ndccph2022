@@ -4,6 +4,10 @@
     <ProjectReference Include="..\Messages\Messages.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="EasyNetQ" Version="6.4.1" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
