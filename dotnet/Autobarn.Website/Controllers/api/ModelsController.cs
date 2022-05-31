@@ -56,9 +56,7 @@ namespace Autobarn.Website.Controllers.api {
                 return Conflict(
                     new {
                         ProblemId = "https://autobarn.com/problems/123456",
-                        FriendlyError =
-                        $"Sorry, the vehicle with registration {dto.Registration
-                        } is already in our database and you can't list the same vehicle twice.",
+                        FriendlyError = $"Sorry, the vehicle with registration {dto.Registration} is already in our database and you can't list the same vehicle twice.",
                         CorrelationId = Guid.NewGuid(),
                         dto.Registration,
                         OccurredAt = DateTime.UtcNow,
